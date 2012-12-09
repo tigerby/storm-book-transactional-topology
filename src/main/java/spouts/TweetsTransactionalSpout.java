@@ -17,12 +17,12 @@ import java.util.Map;
 /**
  * Created with IntelliJ IDEA.
  *
- * @author <a href="mailto:bongyeonkim@gmail.com">tigerby</a>
+ * @author <a href="mailto:bongyeonkim@gmail.com">Bryan Kim</a>
  * @version 1.0
  */
 public class TweetsTransactionalSpout extends BaseTransactionalSpout<TransactionMetadata> {
     @Override
-    public ITransactionalSpout.Coordinator<TransactionMetadata> getCoordinator( Map conf, TopologyContext context) {
+    public ITransactionalSpout.Coordinator<TransactionMetadata> getCoordinator(Map conf, TopologyContext context) {
         return new TweetsTransactionalSpoutCoordinator();
     }
 
@@ -38,6 +38,8 @@ public class TweetsTransactionalSpout extends BaseTransactionalSpout<Transaction
     }
 
     public static class TweetsTransactionalSpoutCoordinator implements ITransactionalSpout.Coordinator<TransactionMetadata> {
+        private static final long MAX_TRANSACTION_SIZE = 100;
+
         TransactionMetadata lastTransactionMetadata;
 
         RQ rq = new RQ();
@@ -51,7 +53,8 @@ public class TweetsTransactionalSpout extends BaseTransactionalSpout<Transaction
         @Override
         public TransactionMetadata initializeTransaction(BigInteger txid, TransactionMetadata prevMetadata) {
             long quantity = rq.getAvailableToRead(nextRead);
-            quantity = quantity > MAX_TRANSACTION_SIZE ? MAX_TRANSACTION_SIZE : quantity; TransactionMetadata ret = new TransactionMetadata(nextRead, (int)quantity);
+            quantity = quantity > MAX_TRANSACTION_SIZE ? MAX_TRANSACTION_SIZE : quantity;
+            TransactionMetadata ret = new TransactionMetadata(nextRead, (int)quantity);
             nextRead += quantity;
             return ret;
         }
@@ -76,7 +79,8 @@ public class TweetsTransactionalSpout extends BaseTransactionalSpout<Transaction
 
         @Override
         public void emitBatch(TransactionAttempt tx, TransactionMetadata coordinatorMeta, BatchOutputCollector collector) {
-            rq.setNextRead(coordinatorMeta.from+coordinatorMeta.quantity); List<String> messages = rq.getMessages(coordinatorMeta.from, coordinatorMeta.quantity);
+            rq.setNextRead(coordinatorMeta.from+coordinatorMeta.quantity);
+            List<String> messages = rq.getMessages(coordinatorMeta.from, coordinatorMeta.quantity);
 
             long tweetId = coordinatorMeta.from;
 
@@ -87,7 +91,8 @@ public class TweetsTransactionalSpout extends BaseTransactionalSpout<Transaction
         }
 
         @Override
-        public void cleanupBefore(BigInteger txid) { }
+        public void cleanupBefore(BigInteger txid) {
+        }
 
         @Override
         public void close() {
