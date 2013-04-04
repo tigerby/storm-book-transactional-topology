@@ -37,7 +37,10 @@ public class HashtagSplitterBolt implements IBasicBolt { private static final lo
     public void execute(Tuple input, BasicOutputCollector collector) {
         String tweet = input.getStringByField("tweet");
         String tweetId = input.getStringByField("tweet_id");
-        StringTokenizer strTok = new StringTokenizer(tweet, " "); TransactionAttempt tx = (TransactionAttempt)input.getValueByField("txid"); HashSet<String> words = new HashSet<String>();
+        StringTokenizer strTok = new StringTokenizer(tweet, " ");
+        TransactionAttempt tx = (TransactionAttempt)input.getValueByField("txid");
+        HashSet<String> words = new HashSet<String>();
+
         while(strTok.hasMoreTokens()) {
             String word = strTok.nextToken();
             if(word.startsWith("#") && !words.contains(word)) {

@@ -39,8 +39,12 @@ public class UserSplitterBolt implements IBasicBolt {
     public void execute(Tuple input, BasicOutputCollector collector) {
         String tweet = input.getStringByField("tweet");
         String tweetId = input.getStringByField("tweet_id");
-        StringTokenizer strTok = new StringTokenizer(tweet, " "); TransactionAttempt tx = (TransactionAttempt)input.getValueByField("txid"); HashSet<String> users = new HashSet<String>();
-        while(strTok.hasMoreTokens()) { String user = strTok.nextToken();
+        StringTokenizer strTok = new StringTokenizer(tweet, " ");
+        TransactionAttempt tx = (TransactionAttempt)input.getValueByField("txid");
+        HashSet<String> users = new HashSet<String>();
+
+        while(strTok.hasMoreTokens()) {
+            String user = strTok.nextToken();
             // Ensure this is an actual user, and that it's not repeated in the tweet
             if(user.startsWith("@") && !users.contains(user)) {
                 collector.emit("users", new Values(tx, tweetId, user));

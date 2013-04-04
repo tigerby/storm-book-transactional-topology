@@ -8,7 +8,7 @@ import backtype.storm.transactional.ITransactionalSpout;
 import backtype.storm.transactional.TransactionAttempt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
-import etc.RQ;
+import redis.RQ;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -41,9 +41,7 @@ public class TweetsTransactionalSpout extends BaseTransactionalSpout<Transaction
         private static final long MAX_TRANSACTION_SIZE = 100;
 
         TransactionMetadata lastTransactionMetadata;
-
         RQ rq = new RQ();
-
         long nextRead = 0;
 
         public TweetsTransactionalSpoutCoordinator() {

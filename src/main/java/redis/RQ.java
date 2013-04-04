@@ -1,9 +1,7 @@
-package etc;
+package redis;
 
-import backtype.storm.transactional.ITransactionalSpout;
 import redis.clients.jedis.Jedis;
 
-import java.math.BigInteger;
 import java.util.List;
 
 /**

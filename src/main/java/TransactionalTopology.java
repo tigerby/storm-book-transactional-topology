@@ -1,7 +1,7 @@
 import backtype.storm.transactional.TransactionalTopologyBuilder;
 import backtype.storm.tuple.Fields;
 import bolts.HashtagSplitterBolt;
-import bolts.RedisCommiterCommiterBolt;
+import bolts.RedisCommiterBolt;
 import bolts.UserHashtagJoinBolt;
 import bolts.UserSplitterBolt;
 import spouts.TweetsTransactionalSpout;
@@ -27,7 +27,7 @@ public class TransactionalTopology {
                 .fieldsGrouping("users-splitter","users", new Fields("tweet_id"))
                 .fieldsGrouping("hashtag-splitter", "hashtags", new Fields("tweet_id"));
 
-        builder.setBolt("redis-committer", new RedisCommiterCommiterBolt())
+        builder.setBolt("redis-committer", new RedisCommiterBolt())
                 .globalGrouping("users-splitter","users")
                 .globalGrouping("hashtag-splitter", "hashtags")
                 .globalGrouping("user-hashtag-merger");

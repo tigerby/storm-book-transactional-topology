@@ -20,21 +20,22 @@ import java.util.Set;
  * @author <a href="mailto:bongyeonkim@gmail.com">tigerby</a>
  * @version 1.0
  */
-public class RedisCommiterCommiterBolt extends BaseTransactionalBolt implements ICommitter {
+public class RedisCommiterBolt extends BaseTransactionalBolt implements ICommitter {
     public static final String LAST_COMMITED_TRANSACTION_FIELD = "LAST_COMMIT";
     TransactionAttempt id;
     BatchOutputCollector collector;
     Jedis jedis;
 
-    @Override
-    public void prepare(Map conf, TopologyContext context, BatchOutputCollector collector, TransactionAttempt id) {
-        this.id = id; this.collector = collector;
-        this.jedis = new Jedis("localhost");
-    }
-
     HashMap<String, Long> hashtags = new HashMap<String, Long>();
     HashMap<String, Long> users = new HashMap<String, Long>();
     HashMap<String, Long> usersHashtags = new HashMap<String, Long>();
+
+    @Override
+    public void prepare(Map conf, TopologyContext context, BatchOutputCollector collector, TransactionAttempt id) {
+        this.id = id;
+        this.collector = collector;
+        this.jedis = new Jedis("localhost");
+    }
 
     private void count(HashMap<String, Long> map, String key, int count) {
         Long value = map.get(key);
@@ -47,15 +48,15 @@ public class RedisCommiterCommiterBolt extends BaseTransactionalBolt implements 
     @Override
     public void execute(Tuple tuple) {
         String origin = tuple.getSourceComponent();
+
+        String hashtag = tuple.getStringByField("hashtag");
+        String user = tuple.getStringByField("user");
+
         if("users-splitter".equals(origin)) {
-            String user = tuple.getStringByField("user");
             count(users, user, 1);
         } else if("hashtag-splitter".equals(origin)) {
-            String hashtag = tuple.getStringByField("hashtag");
             count(hashtags, hashtag, 1);
         } else if("user-hashtag-merger".equals(origin)) {
-            String hashtag = tuple.getStringByField("hashtag");
-            String user = tuple.getStringByField("user");
             String key = user + ":" + hashtag;
             Integer count = tuple.getIntegerByField("count");
             count(usersHashtags, key, count);
@@ -67,7 +68,8 @@ public class RedisCommiterCommiterBolt extends BaseTransactionalBolt implements 
         String lastCommitedTransaction = jedis.get(LAST_COMMITED_TRANSACTION_FIELD);
         String currentTransaction = ""+id.getTransactionId();
 
-        if(currentTransaction.equals(lastCommitedTransaction)) return ;
+        if(currentTransaction.equals(lastCommitedTransaction))
+            return;
 
         Transaction multi = jedis.multi();
         multi.set(LAST_COMMITED_TRANSACTION_FIELD, currentTransaction);

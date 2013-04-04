@@ -1,12 +1,17 @@
 package spouts;
 
 import backtype.storm.coordination.BatchOutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BasePartitionedTransactionalSpout;
 import backtype.storm.transactional.TransactionAttempt;
 import backtype.storm.transactional.partitioned.IOpaquePartitionedTransactionalSpout;
+import backtype.storm.transactional.partitioned.IPartitionedTransactionalSpout;
 import backtype.storm.tuple.Values;
+import redis.PartitionedRQ;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,6 +20,21 @@ import java.util.List;
  * @version 1.0
  */
 public class TweetsPartitionedTransactionalSpout extends BasePartitionedTransactionalSpout<TransactionMetadata> {
+    @Override
+    public Coordinator getCoordinator(Map conf, TopologyContext context) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public Emitter<TransactionMetadata> getEmitter(Map conf, TopologyContext context) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public static class TweetsPartitionedTransactionalCoordinator implements Coordinator {
         @Override
         public int numPartitions() {
@@ -33,6 +53,7 @@ public class TweetsPartitionedTransactionalSpout extends BasePartitionedTransact
 
     public static class TweetsPartitionedTransactionalEmitter implements Emitter<TransactionMetadata> {
         PartitionedRQ rq = new PartitionedRQ();
+        static final int MAX_TRANSACTION_SIZE = 100;
 
         @Override
         public TransactionMetadata emitPartitionBatchNew(TransactionAttempt tx, BatchOutputCollector collector, int partition, TransactionMetadata lastPartitionMeta) {
@@ -74,10 +95,16 @@ public class TweetsPartitionedTransactionalSpout extends BasePartitionedTransact
         public boolean isReady() {
             return true;
         }
+
+        @Override
+        public void close() {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
     }
 
     public static class TweetsOpaquePartitionedTransactionalSpoutEmitter implements IOpaquePartitionedTransactionalSpout.Emitter<TransactionMetadata> {
         PartitionedRQ rq = new PartitionedRQ();
+        static final int MAX_TRANSACTION_SIZE = 100;
 
         @Override
         public TransactionMetadata emitPartitionBatch(TransactionAttempt tx, BatchOutputCollector collector, int partition, TransactionMetadata lastPartitionMeta) {
